@@ -1,11 +1,11 @@
 var createError = require('http-errors');
 var path = require('path');
 var bodyParser = require('body-parser')
-
+const multer = require("multer");
 var express = require('express');
 var mongoose = require('mongoose');
 var cors = require('cors')
-var expressValidator  = require('express-validator');//req.checkbody()
+var expressValidator = require('express-validator');//req.checkbody()
 var fileUpload = require('express-fileupload');
 //const mongoConfig = require('./configs/mongo-config');
 var indexRouter = require('./routes/index');
@@ -17,23 +17,23 @@ var indexRouter = require('./routes/index');
 });*/
 
 var app = express()
-app.use(fileUpload({ useTempFiles:true }))
+
 app.use(cors())
 
 // Express validator
 app.use(expressValidator({
-  errorFormatter: function(param, msg, value) {
+  errorFormatter: function (param, msg, value) {
     var namespace = param.split('.'),
-    root          = namespace.shift(),
-    formParam     = root;
+      root = namespace.shift(),
+      formParam = root;
 
-    while(namespace.lenght) {
+    while (namespace.lenght) {
       formParam += '[' + namespace.shift() + ']';
     }
     return {
-      param : formParam,
-      msg   : msg,
-      value : value
+      param: formParam,
+      msg: msg,
+      value: value
     };
   }
 }));
@@ -46,37 +46,47 @@ app.use(bodyParser.urlencoded({ extended: false }));
 
 //set static dir
 app.use(express.static(path.join(__dirname, 'public')));
-
+//app.use(fileUpload())
 //routers
 app.use('/', indexRouter);
+app.use('/test', (req, res) => {
+  
+  if (req.files) {
+    console.log(req.files)
+  }
+})
+
+
 
 // catch 404 and forward to error handler
-app.use(function(req, res, next) {
+app.use(function (req, res, next) {
   next(createError(404));
 });
 
 // error handler
-app.use(function(err, req, res, next) {
-    if (err instanceof multer.MulterError) {
-        if (err.code === "LIMIT_FILE_SIZE") {
-          return res.status(400).json({
-            message: "file is too large",
-          });
-        }
-    
-        if (err.code === "LIMIT_FILE_COUNT") {
-          return res.status(400).json({
-            message: "File limit reached",
-          });
-        }
-    
-        if (err.code === "LIMIT_UNEXPECTED_FILE") {
-          return res.status(400).json({
-            message: "File must be an image",
-          });
-        }
+app.use(function (err, req, res, next) {
+  if (err instanceof multer.MulterError) {
+    if (err.code === "LIMIT_FILE_SIZE") {
+      return res.status(400).json({
+        message: "file is too large",
+      });
     }
-  res.status(err.status || 500).json(err);
+
+    if (err.code === "LIMIT_FILE_COUNT") {
+      return res.status(400).json({
+        message: "File limit reached",
+      });
+    }
+
+    if (err.code === "LIMIT_UNEXPECTED_FILE") {
+      return res.status(400).json({
+        message: "File must be an image",
+      });
+    }
+  }
+  if (err) {
+    res.status(err.status || 500).json(err);
+  }
 });
 
 app.listen(4000, () => console.log("listening on port 4000"));

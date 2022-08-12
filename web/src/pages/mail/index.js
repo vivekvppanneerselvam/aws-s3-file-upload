@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { connect } from 'react-redux'
 import { submitQuery, awsFileUpload } from './action'
 function Mail(props) {
@@ -7,7 +7,10 @@ function Mail(props) {
         email: "",
         comment: ""
     })
-    const [selectedFile, setSelectedFile] = useState(null);
+    const [doc, setDoc] = useState({
+        image: {}
+    });
+    const fileInputRef = useRef();
 
     function onChangeInput(e) {
         let id = e.target.id, value = e.target.value
@@ -23,8 +26,35 @@ function Mail(props) {
 
     function onClickFileUpload() {
         const formData = new FormData();
-        formData.append("name", name);
-        formData.append("file", selectedFile);
+       // console.log(doc.image)
+        let file = doc.image
+        formData.append("name", "dummy");
+        formData.append("image", file);
+        console.log(formData.get('image'))
+        props.awsFileUpload(formData)
+    }
+
+    function onReset() {
+        setState((prev) => {
+            prev.name = ""
+            prev.email = ""
+            prev.comments = ""
+            return ({ ...prev })
+        })
+    }
+
+    function onChangeFile(e) {
+        console.log(e.target.files[0])
+        let file = e.target.files[0], id ="image"
+        
+            setDoc(prev=>{
+                prev[id] = file
+                return ({...prev})
+            })
+        
+        //setSelectedFile(file)
+        console.log(doc)
+
     }
 
     return (
@@ -39,25 +69,25 @@ function Mail(props) {
                             <div class="form-group row">
                                 <label for="staticEmail" class="col-sm-2 col-form-label">Name:</label>
                                 <div class="col-sm-10">
-                                    <input className="form-control rounded-0" type="text" id="name" name="name" onChange={(e) => onChangeInput(e)} />
+                                    <input className="form-control rounded-0" type="text" id="name" name="name" value={state.name} onChange={(e) => onChangeInput(e)} />
                                 </div>
                             </div>
                             <div class="form-group row">
                                 <label for="staticEmail" class="col-sm-2 col-form-label">E-mail:</label>
                                 <div class="col-sm-10">
-                                    <input className="form-control rounded-0" type="text" id="email" name="mail" onChange={(e) => onChangeInput(e)} />
+                                    <input className="form-control rounded-0" type="text" id="email" name="mail" value={state.email} onChange={(e) => onChangeInput(e)} />
                                 </div>
                             </div>
                             <div class="form-group row">
                                 <label for="staticEmail" class="col-sm-2 col-form-label">Comment:</label>
                                 <div class="col-sm-10">
-                                    <textarea className="form-control" type="text" id="comment" name="comment" size="50" onChange={(e) => onChangeInput(e)} />
+                                    <textarea className="form-control" type="text" id="comment" value={state.comment} name="comment" size="50" onChange={(e) => onChangeInput(e)} />
                                 </div>
                             </div>
-                            <input type="file" value={selectedFile} onChange={(e) => setSelectedFile(e.target.files[0])} /> <button className="btn btn-sm btn-primary rounded-0"> Upload </button>
+                            <input type="file" ref={fileInputRef} onChange={onChangeFile} /> <button className="btn btn-sm btn-primary rounded-0" onClick={() => onClickFileUpload()}> Upload </button>
                             <br /><br />
-                            <button className="btn btn-sm btn-primary rounded-0" onClick={()=>onSubmit()}> Send </button>
-                            <button className="btn btn-sm btn-secondary rounded-0"> Reset </button></div>
+                            <button className="btn btn-sm btn-primary rounded-0" onClick={onSubmit}> Send </button>
+                            <button className="btn btn-sm btn-secondary rounded-0" onClick={onReset}> Reset </button></div>
                     </div>
                 </div>
             </div>
