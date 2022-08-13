@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { connect } from 'react-redux'
 import { submitQuery, awsFileUpload } from './action'
 function Mail(props) {
     const [state, setState] = useState({
